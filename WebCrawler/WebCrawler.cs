@@ -12,25 +12,16 @@ namespace WebCrawler
 		private const int DefaultDepth = 5;
 
 		#region Fields
-		private WebCrawlerConfig _config;
 		private List<Uri> _uniqueUriList;
 		#endregion
 
 		#region Properties
-		public WebCrawlerConfig Config
-		{
-			get
-			{
-				return _config;
-			}
-		}
 		public int MaxDepth { get; set; }
 		#endregion
 
 		public WebCrawler()
 		{
 			MaxDepth = DefaultDepth;
-			_config = new WebCrawlerConfig();
 			_uniqueUriList = new List<Uri>();
 		}
 
