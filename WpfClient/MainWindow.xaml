@@ -6,24 +6,57 @@
         xmlns:local="clr-namespace:WpfClient"
         mc:Ignorable="d"
         Title="Web Crawler" Height="700" Width="1200"
-        ResizeMode="NoResize" WindowStartupLocation="CenterScreen" >
+        ResizeMode="NoResize" WindowStartupLocation="CenterScreen" 
+        Loaded="OnWindowLoaded">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="1*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <Menu Grid.Row="0" Grid.Column="0">
-            <MenuItem Header="File">
-                <MenuItem Header="Open"/>
-            </MenuItem>
-        </Menu>
-        <Grid Grid.Row="1" Grid.Column="0">
+        <Grid Grid.Row="0" Grid.Column="0" Margin="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBox x:Name="FilePickerTextBox" Grid.Row="0" Grid.Column="0" Margin="0,0,5,0" Padding="5" Text="{Binding Path=SourceFilePath}" Loaded="OnSourceFilePickerLoaded" IsReadOnly="True"/>
+            <Button x:Name="FilePickerButton" Grid.Row="0" Grid.Column="1" Margin="5,0,0,0" Padding="15 5" Click="OnChooseSourceFile">Choose source file</Button>
+        </Grid>
+        <Grid Grid.Row="1" Grid.Column="0" Margin="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="1*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="3*"/>
+            </Grid.ColumnDefinitions>
+            <Button x:Name="StartBtn" Grid.Row="0" Grid.Column="0" Margin="0,0,5,0" Padding="5" 
+                    IsEnabled="{Binding Path=StartBtnEnabled}" Click="OnStartCrawling">Start</Button>
+            <Button x:Name="StopBtn" Grid.Row="0" Grid.Column="1" Margin="5,0,0,0" Padding="5" 
+                    IsEnabled="{Binding Path=StopBtnEnabled}">Stop</Button>
+            <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,5,5,0" Padding="5">Crawling depth</TextBlock>
+            <TextBox x:Name="DepthInput" Grid.Row="1" Grid.Column="1" Margin="5,5,0,0" Padding="5" Text="2" HorizontalAlignment="Right" MaxLength="1"/>
+            <TreeView Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Margin="0 5">
 
+            </TreeView>
+            <Grid x:Name="SiteDetail" Grid.Row="0" Grid.Column="2" Grid.RowSpan="3" Background="Wheat" Margin="10 0 0 5">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="1*"/>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Link Description" FontSize="16" FontWeight="Bold" Padding="15 10" Background="Tan" Foreground="White"/>
+                <Grid Grid.Row="1" Grid.Column="0"></Grid>
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Log Window" Padding="10 5" Background="Tan" Foreground="White"/>
+                <ListBox x:Name="LogWindow" Grid.Row="3" Grid.Column="0" ItemsSource="{Binding Path=LogLines}" Loaded="OnLogWindowLoaded"/>
+            </Grid>
         </Grid>
         <StatusBar x:Name="statusBar" Grid.Row="2" Grid.Column="0" Background="{Binding Path=BackgroundColor}" Loaded="OnStatusBarLoaded">
-            <TextBlock Foreground="{Binding Path=TextColor}" Text="{Binding Path=StatusText}" FontSize="14"
-                       FontFamily="Tahoma"/>
+            <TextBlock Foreground="{Binding Path=TextColor}" Text="{Binding Path=StatusText}"/>
         </StatusBar>
     </Grid>
 </Window>

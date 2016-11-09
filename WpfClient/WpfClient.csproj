@@ -55,6 +55,14 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ApplicationContext.cs" />
+    <Compile Include="Model\LoggerModel.cs" />
+    <Compile Include="Model\CrawlerTreeModel.cs" />
+    <Compile Include="Model\SourceFilePickerModel.cs" />
+    <Compile Include="ViewModel\CrawlerTreeViewModel.cs" />
+    <Compile Include="ViewModel\IViewModel.cs" />
+    <Compile Include="ViewModel\LoggerViewModel.cs" />
+    <Compile Include="ViewModel\SourceFilePickerViewModel.cs" />
     <Compile Include="ViewModel\StatusBarViewModel.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -99,6 +107,12 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Views\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\WebCrawler\WebCrawler.csproj">
+      <Project>{2ef21ffa-73a6-4658-bd26-52fe90b845a3}</Project>
+      <Name>WebCrawler</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

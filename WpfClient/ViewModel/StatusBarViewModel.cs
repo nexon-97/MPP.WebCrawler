@@ -1,8 +1,9 @@
 ﻿using WpfClient.Model;
+using System.Windows;
 
 namespace WpfClient.ViewModel
 {
-	public class StatusBarViewModel
+	public class StatusBarViewModel : IViewModel
 	{
 		public StatusBarModel StatusBar { get; set; }
 
@@ -15,6 +16,11 @@ namespace WpfClient.ViewModel
 		{
 			StatusBar.StatusMessageType = messageType;
 			StatusBar.StatusText = text;
+		}
+
+		public void BindContext(FrameworkElement element)
+		{
+			element.DataContext = StatusBar;
 		}
 	}
 }

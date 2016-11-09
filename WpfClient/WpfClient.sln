@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WpfClient", "WpfClient.csproj", "{77C9A291-DB88-45F6-AAF3-5B690178E9C0}"
+	ProjectSection(ProjectDependencies) = postProject
+		{2EF21FFA-73A6-4658-BD26-52FE90B845A3} = {2EF21FFA-73A6-4658-BD26-52FE90B845A3}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebCrawler", "..\WebCrawler\WebCrawler.csproj", "{2EF21FFA-73A6-4658-BD26-52FE90B845A3}"
 EndProject
