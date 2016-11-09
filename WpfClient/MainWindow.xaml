@@ -21,8 +21,9 @@
         <Grid Grid.Row="1" Grid.Column="0">
 
         </Grid>
-        <StatusBar Grid.Row="2" Grid.Column="0" Background="{Binding StatusBar.BackgroundColor}" Loaded="OnStatusBarLoaded">
-            <TextBlock Foreground="{Binding StatusBar.TextColor}" Text="{Binding StatusBar.StatusText}"/>
+        <StatusBar x:Name="statusBar" Grid.Row="2" Grid.Column="0" Background="{Binding Path=BackgroundColor}" Loaded="OnStatusBarLoaded">
+            <TextBlock Foreground="{Binding Path=TextColor}" Text="{Binding Path=StatusText}" FontSize="14"
+                       FontFamily="Tahoma"/>
         </StatusBar>
     </Grid>
 </Window>

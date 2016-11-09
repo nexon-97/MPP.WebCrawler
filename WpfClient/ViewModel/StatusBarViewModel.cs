@@ -1,23 +1,20 @@
 ﻿using WpfClient.Model;
-using System.Collections.ObjectModel;
 
 namespace WpfClient.ViewModel
 {
 	public class StatusBarViewModel
 	{
-		public ObservableCollection<StatusBarModel> StatusBars
+		public StatusBarModel StatusBar { get; set; }
+
+		public StatusBarViewModel()
 		{
-			get;
-			set;
+			StatusBar = new StatusBarModel();
 		}
 
-		public void LoadStatusBars()
+		public void SetStatus(string text, StatusBarModel.MessageType messageType)
 		{
-			ObservableCollection<StatusBarModel> statusBars = new ObservableCollection<StatusBarModel>();
-
-			statusBars.Add(new StatusBarModel { StatusText = "Debug text" });
-
-			StatusBars = statusBars;
+			StatusBar.StatusMessageType = messageType;
+			StatusBar.StatusText = text;
 		}
 	}
 }
