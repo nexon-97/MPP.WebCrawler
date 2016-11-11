@@ -1,24 +1,33 @@
-﻿using System.Windows;
+﻿using System.Collections.Generic;
 
 namespace WpfClient.ViewModel
 {
-	public class LoggerViewModel : IViewModel
+	public class LoggerViewModel : BaseViewModel
 	{
-		public LoggerModel Logger { get; set; }
+		#region Fields
+		private List<string> logLines;
+		#endregion
+
+		#region Properties
+		public string LogText
+		{
+			get
+			{
+				return string.Join("\n", logLines);
+			}
+		}
+		#endregion
 
 		public LoggerViewModel()
 		{
-			Logger = new LoggerModel();
+			logLines = new List<string>();
 		}
 
-		public void BindContext(FrameworkElement element)
+		public void LogMessage(string message)
 		{
-			element.DataContext = Logger;
-		}
+			logLines.Add(message);
 
-		public void AddLogLine(string line)
-		{
-			Logger.AddLogLine(line);
+			RaisePropertyChanged("LogText");
 		}
 	}
 }

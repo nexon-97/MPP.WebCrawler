@@ -3,24 +3,28 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewmodel="clr-namespace:WpfClient.ViewModel"
         xmlns:local="clr-namespace:WpfClient"
         mc:Ignorable="d"
         Title="Web Crawler" Height="700" Width="1200"
-        ResizeMode="NoResize" WindowStartupLocation="CenterScreen" 
-        Loaded="OnWindowLoaded">
+        WindowStartupLocation="CenterScreen"
+        MinWidth="600" MinHeight="500">
+    <Window.Resources>
+        <viewmodel:MainViewModel x:Key="mainViewModel"/>
+        <viewmodel:LoggerViewModel x:Key="loggerViewModel"/>
+    </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="1*"/>
-            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <Grid Grid.Row="0" Grid.Column="0" Margin="10">
+        <Grid Grid.Row="0" Grid.Column="0" Margin="10" DataContext="{StaticResource mainViewModel}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <TextBox x:Name="FilePickerTextBox" Grid.Row="0" Grid.Column="0" Margin="0,0,5,0" Padding="5" Text="{Binding Path=SourceFilePath}" Loaded="OnSourceFilePickerLoaded" IsReadOnly="True"/>
-            <Button x:Name="FilePickerButton" Grid.Row="0" Grid.Column="1" Margin="5,0,0,0" Padding="15 5" Click="OnChooseSourceFile">Choose source file</Button>
+            <TextBox x:Name="FilePickerTextBox" Grid.Row="0" Grid.Column="0" Margin="0,0,5,0" Padding="5" Text="{Binding Path=SourceFilePath}" IsReadOnly="True"/>
+            <Button x:Name="FilePickerButton" Grid.Row="0" Grid.Column="1" Margin="5,0,0,0" Padding="15 5">Choose source file</Button>
         </Grid>
         <Grid Grid.Row="1" Grid.Column="0" Margin="10">
             <Grid.RowDefinitions>
@@ -34,29 +38,50 @@
                 <ColumnDefinition Width="3*"/>
             </Grid.ColumnDefinitions>
             <Button x:Name="StartBtn" Grid.Row="0" Grid.Column="0" Margin="0,0,5,0" Padding="5" 
-                    IsEnabled="{Binding Path=StartBtnEnabled}" Click="OnStartCrawling">Start</Button>
+                    IsEnabled="{Binding Path=StartBtnEnabled}">Start</Button>
             <Button x:Name="StopBtn" Grid.Row="0" Grid.Column="1" Margin="5,0,0,0" Padding="5" 
                     IsEnabled="{Binding Path=StopBtnEnabled}">Stop</Button>
             <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,5,5,0" Padding="5">Crawling depth</TextBlock>
             <TextBox x:Name="DepthInput" Grid.Row="1" Grid.Column="1" Margin="5,5,0,0" Padding="5" Text="2" HorizontalAlignment="Right" MaxLength="1"/>
-            <TreeView Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Margin="0 5">
-
-            </TreeView>
+            <TreeView x:Name="CrawlingOutputTree" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Margin="0 5" ItemsSource="{Binding Path=CrawlerOutput}"/>
             <Grid x:Name="SiteDetail" Grid.Row="0" Grid.Column="2" Grid.RowSpan="3" Background="Wheat" Margin="10 0 0 5">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="1*"/>
                 </Grid.RowDefinitions>
                 <TextBlock Grid.Row="0" Grid.Column="0" Text="Link Description" FontSize="16" FontWeight="Bold" Padding="15 10" Background="Tan" Foreground="White"/>
-                <Grid Grid.Row="1" Grid.Column="0"></Grid>
+                <Grid x:Name="LinkDescription" Grid.Row="1" Grid.Column="0" Visibility="{Binding Path=LinkDescVisibles, Mode=OneWay}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="3*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Resource ID" Padding="10"/>
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="URI" Padding="10" Background="Beige"/>
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Response" Padding="10"/>
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Content" Padding="10" Background="Beige"/>
+                    <TextBlock Grid.Row="0" Grid.Column="1" x:Name="ResourceIdText" Padding="10" Text="{Binding Path=ResourceId}"/>
+                    <TextBlock Grid.Row="1" Grid.Column="1" Padding="10" Text="{Binding Path=ResourceUri}"/>
+                    <TextBlock Grid.Row="2" Grid.Column="1" Padding="10" Text="{Binding Path=ResponseText}"/>
+                    <Grid Grid.Row="3" Grid.Column="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Padding="15 5" Text="Size: 3 KB" VerticalAlignment="Center"/>
+                        <Button Grid.Row="0" Grid.Column="1" Padding="15 5" Margin="5">Save To File</Button>
+                    </Grid>
+                </Grid>
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Log Window" Padding="10 5" Background="Tan" Foreground="White"/>
-                <ListBox x:Name="LogWindow" Grid.Row="3" Grid.Column="0" ItemsSource="{Binding Path=LogLines}" Loaded="OnLogWindowLoaded"/>
+                <TextBox Grid.Row="3" Grid.Column="0" DataContext="{StaticResource loggerViewModel}" Text="{Binding Path=LogText, Mode=OneWay}" IsReadOnly="True"/>
             </Grid>
         </Grid>
-        <StatusBar x:Name="statusBar" Grid.Row="2" Grid.Column="0" Background="{Binding Path=BackgroundColor}" Loaded="OnStatusBarLoaded">
-            <TextBlock Foreground="{Binding Path=TextColor}" Text="{Binding Path=StatusText}"/>
-        </StatusBar>
     </Grid>
 </Window>

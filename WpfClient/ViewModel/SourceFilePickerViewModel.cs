@@ -1,24 +1,33 @@
-﻿using WpfClient.Model;
-using System.Windows;
+﻿using System.Windows;
 
 namespace WpfClient.ViewModel
 {
-	public class SourceFilePickerViewModel : IViewModel
+	public class SourceFilePickerViewModel : BaseViewModel
 	{
-		public SourceFilePickerModel FilePicker { get; set; }
+		#region Fields
+		private string sourceFilePath;
+		#endregion
 
+		#region Properties
 		public string SourceFilePath
 		{
 			get
 			{
-				return FilePicker.SourceFilePath;
+				return sourceFilePath;
+			}
+			set
+			{
+				if (sourceFilePath != value)
+				{
+					sourceFilePath = value;
+
+					RaisePropertyChanged("SourceFilePath");
+
+					//ApplicationContext.Instance.CrawlerTreeVM.ValidateSourcePath(sourceFilePath);
+				}
 			}
 		}
-
-		public SourceFilePickerViewModel()
-		{
-			FilePicker = new SourceFilePickerModel();
-		}
+		#endregion
 
 		public void ChooseFileFromDialog()
 		{
@@ -29,15 +38,10 @@ namespace WpfClient.ViewModel
 
 			if (dlg.ShowDialog() != null)
 			{
-				FilePicker.SourceFilePath = dlg.FileName;
+				SourceFilePath = dlg.FileName;
 
-				ApplicationContext.Instance.LoggerVM.AddLogLine("Source file specified. Can start crawling.");
+				//ApplicationContext.Instance.LoggerVM.AddLogLine("Source file specified. Can start crawling.");
 			}
-		}
-
-		public void BindContext(FrameworkElement element)
-		{
-			element.DataContext = FilePicker;
 		}
 	}
 }
