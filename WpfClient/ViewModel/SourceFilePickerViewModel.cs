@@ -1,11 +1,15 @@
-﻿using System.Windows;
+﻿using System.Windows.Input;
+using Microsoft.Win32;
+using WpfClient.Commands;
 
 namespace WpfClient.ViewModel
 {
-	public class SourceFilePickerViewModel : BaseViewModel
+	internal class SourceFilePickerViewModel : BaseViewModel
 	{
 		#region Fields
 		private string sourceFilePath;
+		private ButtonCommand chooseFileBtnClick;
+		private OpenFileDialog fileDialog;
 		#endregion
 
 		#region Properties
@@ -27,20 +31,40 @@ namespace WpfClient.ViewModel
 				}
 			}
 		}
+
+		public ICommand ChooseFileBtnClick
+		{
+			get
+			{
+				return chooseFileBtnClick;
+			}
+		}
 		#endregion
 
-		public void ChooseFileFromDialog()
+		public SourceFilePickerViewModel()
+			: base(ViewModelId.SourceFilePicker)
 		{
-			Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
+			chooseFileBtnClick = new ButtonCommand(ChooseFileFromDialog);
 
-			dlg.DefaultExt = ".xml";
-			dlg.Filter = "Xml Files (*.xml)|*.xml";
+			SetupFileDialog();
+		}
 
-			if (dlg.ShowDialog() != null)
+		private void SetupFileDialog()
+		{
+			fileDialog = new OpenFileDialog();
+
+			fileDialog.DefaultExt = ".xml";
+			fileDialog.Filter = "Xml Files (*.xml)|*.xml";
+		}
+
+		public void ChooseFileFromDialog(object param)
+		{
+			if (fileDialog.ShowDialog() != null)
 			{
-				SourceFilePath = dlg.FileName;
+				SourceFilePath = fileDialog.FileName;
 
-				//ApplicationContext.Instance.LoggerVM.AddLogLine("Source file specified. Can start crawling.");
+				LoggerViewModel.Instance.LogMessage("Source file defined.");
+				ViewModelsMediator.Instance.OnSourceFileChosen(SourceFilePath);
 			}
 		}
 	}

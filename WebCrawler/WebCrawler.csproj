@@ -43,6 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ILogger.cs" />
     <Compile Include="LinkExtractor.cs" />
     <Compile Include="WebCrawler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

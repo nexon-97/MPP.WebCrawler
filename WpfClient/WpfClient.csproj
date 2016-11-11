@@ -55,13 +55,19 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Commands\ButtonCommandAsync.cs" />
+    <Compile Include="Commands\IAsyncCommand.cs" />
+    <Compile Include="CrawingTask.cs" />
+    <Compile Include="Commands\ButtonCommand.cs" />
+    <Compile Include="CrawlerInputParser.cs" />
     <Compile Include="CrawlerTreeViewItem.cs" />
+    <Compile Include="ViewModel\ViewModelId.cs" />
     <Compile Include="ViewModel\BaseViewModel.cs" />
     <Compile Include="ViewModel\CrawlerTreeViewModel.cs" />
     <Compile Include="ViewModel\LoggerViewModel.cs" />
-    <Compile Include="ViewModel\MainViewModel.cs" />
     <Compile Include="ViewModel\ResourceDescriptionViewModel.cs" />
     <Compile Include="ViewModel\SourceFilePickerViewModel.cs" />
+    <Compile Include="ViewModel\ViewModelsMediator.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -102,9 +108,7 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Model\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\WebCrawler\WebCrawler.csproj">
       <Project>{2ef21ffa-73a6-4658-bd26-52fe90b845a3}</Project>

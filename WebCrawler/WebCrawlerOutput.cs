@@ -1,40 +1,30 @@
-﻿using System.Collections.Generic;
-using System.Text;
+﻿using System;
+using System.Collections.Generic;
+using System.Net;
 
 namespace WebCrawler
 {
 	public class WebCrawlerOutput
 	{
-		public int SourceId { get; set; }
-		public List<WebCrawlerOutput> Children { get; }
+		public int SourceId { get; private set; }
+		public Uri SourceUri { get; private set; }
+		public byte[] Content { get; private set; }
+		public WebResponse Response { get; private set; }
+		public List<WebCrawlerOutput> Children { get; private set; }
 
-		public WebCrawlerOutput(int sourceId)
+		public WebCrawlerOutput(int sourceId, Uri sourceUri, WebResponse response, byte[] content)
 		{
 			SourceId = sourceId;
+			SourceUri = sourceUri;
+			Response = response;
+			Content = content;
+
 			Children = new List<WebCrawlerOutput>();
 		}
 
 		public void AddChild(WebCrawlerOutput child)
 		{
 			Children.Add(child);
-		}
-
-		public string Print(int tab)
-		{
-			StringBuilder builder = new StringBuilder();
-			builder.AppendFormat("{0}-> (url{1})\n", GetTabs(tab), SourceId);
-
-			foreach (var item in Children)
-			{
-				builder.Append(item.Print(tab + 1));
-			}
-
-			return builder.ToString();
-		}
-
-		private string GetTabs(int tab)
-		{
-			return new string(' ', tab * 3);
 		}
 	}
 }

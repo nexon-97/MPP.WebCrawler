@@ -3,7 +3,7 @@ using WebCrawler;
 
 namespace WpfClient
 {
-	public class CrawlerTreeViewItem : TreeViewItem
+	internal class CrawlerTreeViewItem : TreeViewItem
 	{
 		public WebCrawlerOutput AttachedData { get; set; }
 	}

@@ -3,53 +3,57 @@ using System.Net;
 using System.Threading.Tasks;
 using System.IO;
 using System.Collections.Generic;
+using System.Text;
 
 namespace WebCrawler
 {
 	public class WebCrawler
 	{
 		private const int NotFoundIndex = -1;
-		private const int DefaultDepth = 5;
+		private const int DefaultDepth = 3;
 
 		#region Fields
-		private List<Uri> _uniqueUriList;
+		private List<Uri> uniqueUriList;
 		#endregion
 
 		#region Properties
 		public int MaxDepth { get; set; }
+		public ILogger Logger { get; set; }
 		#endregion
 
 		public WebCrawler()
 		{
 			MaxDepth = DefaultDepth;
-			_uniqueUriList = new List<Uri>();
+			uniqueUriList = new List<Uri>();
 		}
 
-		public string LoadHtmlPage(Uri uri)
+		public byte[] LoadHtmlPage(Uri uri, out WebResponse response)
 		{
 			WebRequest request = WebRequest.Create(uri);
+			response = null;
 
 			try
 			{
-				WebResponse response = request.GetResponse();
+				response = request.GetResponse();
 
 				var stream = response.GetResponseStream();
 				using (var reader = new StreamReader(stream))
 				{
-					return reader.ReadToEnd();
+					string content = reader.ReadToEnd();
+					return Encoding.ASCII.GetBytes(content);
 				}
 			}
 			catch (WebException e)
 			{
-				Console.WriteLine(e.Message);
+				LogMessage(string.Format("{0}: {1}", uri, e.Message));
 			}
 
-			return string.Empty;	
+			return null;	
 		}
 
 		public int GetUriId(Uri uri)
 		{
-			return _uniqueUriList.FindIndex(x => uri.AbsoluteUri.Equals(x.AbsoluteUri));
+			return uniqueUriList.FindIndex(x => uri.AbsoluteUri.Equals(x.AbsoluteUri));
 		}
 
 		public int AddUri(Uri uri)
@@ -57,8 +61,8 @@ namespace WebCrawler
 			int uriId = GetUriId(uri);
 			if (uriId == NotFoundIndex)
 			{
-				_uniqueUriList.Add(uri);
-				return _uniqueUriList.Count - 1;
+				uniqueUriList.Add(uri);
+				return uniqueUriList.Count - 1;
 			}
 			else
 			{
@@ -66,33 +70,58 @@ namespace WebCrawler
 			}
 		}
 
-		public async Task<WebCrawlerOutput> PerformCrawlingAsync(Uri uri, int currentDepth)
+		public async Task<WebCrawlerOutput> PerformCrawlingAsync(Uri uri, int currentDepth, int parentId)
 		{
-			if (GetUriId(uri) == NotFoundIndex)
+			int uriId = GetUriId(uri);
+			if (uriId == NotFoundIndex)
 			{
-				WebCrawlerOutput output = new WebCrawlerOutput(AddUri(uri));
-				LinkExtractor extractor = new LinkExtractor();
+				WebResponse response;
+				byte[] pageContent = LoadHtmlPage(uri, out response);
 
-				string pageContent = LoadHtmlPage(uri);
-				List<Uri> childUris = extractor.ExtractLinksFromPage(uri, pageContent);
-
-				currentDepth++;
-				if (currentDepth < MaxDepth)
+				WebCrawlerOutput output = new WebCrawlerOutput(AddUri(uri), uri, response, pageContent);
+				uriId = GetUriId(uri); // Update uri unique id
+				
+				if (pageContent != null)
 				{
-					foreach (var item in childUris)
+					LinkExtractor extractor = new LinkExtractor();
+					List<Uri> childUris = extractor.ExtractLinksFromPage(uri, pageContent);
+
+					currentDepth++;
+					if (currentDepth < MaxDepth)
 					{
-						var childOutput = await PerformCrawlingAsync(item, currentDepth);
-						if (childOutput != null)
+						foreach (var item in childUris)
 						{
-							output.AddChild(childOutput);
+							var childOutput = await PerformCrawlingAsync(item, currentDepth, uriId);
+							if (childOutput != null)
+							{
+								output.AddChild(childOutput);
+							}
 						}
 					}
 				}
-
+				
 				return output;
 			}
 
 			return null;
+		}
+
+		public Uri GetUriById(int id)
+		{
+			if (id >= 0 && uniqueUriList.Count > id)
+			{
+				return uniqueUriList[id];
+			}
+
+			return null;
+		}
+
+		private void LogMessage(string message)
+		{
+			if (Logger != null)
+			{
+				Logger.LogMessage(message);
+			}
 		}
 	}
 }

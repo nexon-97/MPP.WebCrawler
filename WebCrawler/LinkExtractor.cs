@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace WebCrawler
@@ -11,8 +12,10 @@ namespace WebCrawler
 		private const string TagEndingPattern = ">";
 		private const string AbsolutePathFeature = "://";
 
-		public List<Uri> ExtractLinksFromPage(Uri uri, string downloadedPage)
+		public List<Uri> ExtractLinksFromPage(Uri uri, byte[] content)
 		{
+			string downloadedPage = Encoding.ASCII.GetString(content);
+
 			List<Uri> links = new List<Uri>();
 			int searchFromIndex = 0;
 
@@ -52,38 +55,35 @@ namespace WebCrawler
 
 		public Uri ConstructUri(Uri source, string href)
 		{
-			bool absolute = href.Contains(AbsolutePathFeature);
-			if (absolute)
+			bool isAbsolute = href.Contains(AbsolutePathFeature);
+			if (isAbsolute)
 			{
 				return new Uri(href);
 			}
 			else
 			{
-				return new Uri(source.AbsoluteUri + href);
+				int lastSeparator = source.AbsoluteUri.LastIndexOf('/');
+				string truncatedPath = source.AbsoluteUri.Substring(0, lastSeparator + 1);
+				return new Uri(truncatedPath + href);
 			}
 		}
 
 		private Uri ClearUri(Uri uri)
 		{
 			string absoluteUri = uri.AbsoluteUri;
-			bool hasModification = false;
 
 			// Remove anchors
 			int anchorIndex = absoluteUri.IndexOf('#');
 			if (anchorIndex != NotFoundIndex)
 			{
 				absoluteUri = absoluteUri.Substring(0, anchorIndex);
-				hasModification = true;
 			}
 
-			if (hasModification)
-			{
-				return new Uri(absoluteUri);
-			}
-			else
-			{
-				return uri;
-			}
+			// Remove duplicate slashes
+			const string DuplicateSlashesPattern = @"([^:/])/{2,}";
+			absoluteUri = Regex.Replace(absoluteUri, DuplicateSlashesPattern, m => m.Groups[1].Value + "/");
+
+			return new Uri(absoluteUri);
 		}
 	}
 }

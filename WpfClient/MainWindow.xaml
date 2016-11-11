@@ -10,21 +10,25 @@
         WindowStartupLocation="CenterScreen"
         MinWidth="600" MinHeight="500">
     <Window.Resources>
-        <viewmodel:MainViewModel x:Key="mainViewModel"/>
         <viewmodel:LoggerViewModel x:Key="loggerViewModel"/>
+        <viewmodel:SourceFilePickerViewModel x:Key="sourcePickerViewModel"/>
+        <viewmodel:CrawlerTreeViewModel x:Key="crawlerTreeViewModel"/>
+        <viewmodel:ResourceDescriptionViewModel x:Key="resourceDescViewModel"/>
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="1*"/>
         </Grid.RowDefinitions>
-        <Grid Grid.Row="0" Grid.Column="0" Margin="10" DataContext="{StaticResource mainViewModel}">
+        <Grid Grid.Row="0" Grid.Column="0" Margin="10" DataContext="{StaticResource sourcePickerViewModel}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <TextBox x:Name="FilePickerTextBox" Grid.Row="0" Grid.Column="0" Margin="0,0,5,0" Padding="5" Text="{Binding Path=SourceFilePath}" IsReadOnly="True"/>
-            <Button x:Name="FilePickerButton" Grid.Row="0" Grid.Column="1" Margin="5,0,0,0" Padding="15 5">Choose source file</Button>
+            <TextBox x:Name="FilePickerTextBox" Grid.Row="0" Grid.Column="0" Margin="0,0,5,0" Padding="5" 
+                     Text="{Binding Path=SourceFilePath}" IsReadOnly="True"/>
+            <Button x:Name="FilePickerButton" Grid.Row="0" Grid.Column="1" Margin="5,0,0,0" 
+                    Padding="15 5" Command="{Binding Path=ChooseFileBtnClick, Mode=OneWay}">Choose source file</Button>
         </Grid>
         <Grid Grid.Row="1" Grid.Column="0" Margin="10">
             <Grid.RowDefinitions>
@@ -38,21 +42,36 @@
                 <ColumnDefinition Width="3*"/>
             </Grid.ColumnDefinitions>
             <Button x:Name="StartBtn" Grid.Row="0" Grid.Column="0" Margin="0,0,5,0" Padding="5" 
-                    IsEnabled="{Binding Path=StartBtnEnabled}">Start</Button>
+                    DataContext="{StaticResource crawlerTreeViewModel}"
+                    IsEnabled="{Binding Path=StartBtnEnabled}"
+                    Command="{Binding Path=StartBtnClick, Mode=OneWay}">Start</Button>
             <Button x:Name="StopBtn" Grid.Row="0" Grid.Column="1" Margin="5,0,0,0" Padding="5" 
-                    IsEnabled="{Binding Path=StopBtnEnabled}">Stop</Button>
+                    DataContext="{StaticResource crawlerTreeViewModel}"
+                    IsEnabled="{Binding Path=StopBtnEnabled}"
+                    Command="{Binding Path=StopBtnClick, Mode=OneWay}">Stop</Button>
             <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,5,5,0" Padding="5">Crawling depth</TextBlock>
-            <TextBox x:Name="DepthInput" Grid.Row="1" Grid.Column="1" Margin="5,5,0,0" Padding="5" Text="2" HorizontalAlignment="Right" MaxLength="1"/>
-            <TreeView x:Name="CrawlingOutputTree" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Margin="0 5" ItemsSource="{Binding Path=CrawlerOutput}"/>
-            <Grid x:Name="SiteDetail" Grid.Row="0" Grid.Column="2" Grid.RowSpan="3" Background="Wheat" Margin="10 0 0 5">
+            <TextBox x:Name="DepthInput" Grid.Row="1" Grid.Column="1" Margin="5,5,0,0" Padding="5" Width="30"
+                     DataContext="{StaticResource crawlerTreeViewModel}"
+                     Text="{Binding Path=CrawlingDepth, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                     HorizontalAlignment="Right" MaxLength="1"
+                     TextAlignment="Center"/>
+            <TreeView x:Name="CrawlingOutputTree" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Margin="0 5"
+                      DataContext="{StaticResource crawlerTreeViewModel}" 
+                      ItemsSource="{Binding Path=CrawlerOutput, Mode=OneWay}"
+                      SelectedItemChanged="CrawlingOutputTree_SelectedItemChanged"/>
+            <Grid x:Name="SiteDetail" Grid.Row="0" Grid.Column="2" Grid.RowSpan="3" Background="Wheat" 
+                  Margin="10 0 0 5">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="1*"/>
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="Link Description" FontSize="16" FontWeight="Bold" Padding="15 10" Background="Tan" Foreground="White"/>
-                <Grid x:Name="LinkDescription" Grid.Row="1" Grid.Column="0" Visibility="{Binding Path=LinkDescVisibles, Mode=OneWay}">
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Link Description" FontSize="16" FontWeight="Bold" 
+                           Padding="15 10" Background="Tan" Foreground="White"/>
+                <Grid x:Name="LinkDescription" Grid.Row="1" Grid.Column="0" 
+                      DataContext="{StaticResource resourceDescViewModel}" 
+                      Visibility="{Binding Path=LinkDescVisible, Mode=OneWay}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
@@ -64,23 +83,35 @@
                         <ColumnDefinition Width="3*"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Resource ID" Padding="10"/>
-                    <TextBlock Grid.Row="1" Grid.Column="0" Text="URI" Padding="10" Background="Beige"/>
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="URI" Padding="10" Background="BlanchedAlmond"/>
                     <TextBlock Grid.Row="2" Grid.Column="0" Text="Response" Padding="10"/>
-                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Content" Padding="10" Background="Beige"/>
-                    <TextBlock Grid.Row="0" Grid.Column="1" x:Name="ResourceIdText" Padding="10" Text="{Binding Path=ResourceId}"/>
-                    <TextBlock Grid.Row="1" Grid.Column="1" Padding="10" Text="{Binding Path=ResourceUri}"/>
-                    <TextBlock Grid.Row="2" Grid.Column="1" Padding="10" Text="{Binding Path=ResponseText}"/>
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Content" Padding="10" Background="BlanchedAlmond"/>
+                    <TextBlock Grid.Row="0" Grid.Column="1" x:Name="ResourceIdText" Padding="10" 
+                               Text="{Binding Path=ResourceId}" Background="BlanchedAlmond"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" Padding="10" Text="{Binding Path=ResourceUri}" 
+                             Background="Transparent" IsReadOnly="True"/>
+                    <TextBlock Grid.Row="2" Grid.Column="1" Padding="10" Text="{Binding Path=ResponseText}" 
+                               Background="BlanchedAlmond"/>
                     <Grid Grid.Row="3" Grid.Column="1">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="1*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Row="0" Grid.Column="0" Padding="15 5" Text="Size: 3 KB" VerticalAlignment="Center"/>
-                        <Button Grid.Row="0" Grid.Column="1" Padding="15 5" Margin="5">Save To File</Button>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Padding="15 5"
+                                   DataContext="{StaticResource resourceDescViewModel}"
+                                   Text="{Binding Path=ContentDesc}" 
+                                   VerticalAlignment="Center"/>
+                        <Button Grid.Row="0" Grid.Column="1" Padding="15 5" Margin="5"
+                                DataContext="{StaticResource resourceDescViewModel}"
+                                IsEnabled="{Binding SaveContentBtnEnabled}"
+                                Command="{Binding SaveToFileCommand}">Save To File</Button>
                     </Grid>
                 </Grid>
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="Log Window" Padding="10 5" Background="Tan" Foreground="White"/>
-                <TextBox Grid.Row="3" Grid.Column="0" DataContext="{StaticResource loggerViewModel}" Text="{Binding Path=LogText, Mode=OneWay}" IsReadOnly="True"/>
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Log Window" Padding="15 10"
+                           Background="Tan" Foreground="White" FontSize="16" FontWeight="Bold"/>
+                <TextBox Grid.Row="3" Grid.Column="0" DataContext="{StaticResource loggerViewModel}" 
+                         Text="{Binding Path=LogText, Mode=OneWay}" IsReadOnly="True" VerticalContentAlignment="Top"
+                         Padding="5"/>
             </Grid>
         </Grid>
     </Grid>

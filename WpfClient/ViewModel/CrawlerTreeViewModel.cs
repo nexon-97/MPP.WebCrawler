@@ -1,18 +1,24 @@
 ﻿using System;
 using System.IO;
-using System.Xml;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using WebCrawler;
+using WpfClient.Commands;
+using System.Windows.Input;
+using System.Threading.Tasks;
+using System.Collections.ObjectModel;
 
 namespace WpfClient.ViewModel
 {
-	public class CrawlerTreeViewModel : BaseViewModel
+	using TreeViewItems = ObservableCollection<CrawlerTreeViewItem>;
+
+	internal class CrawlerTreeViewModel : BaseViewModel
 	{
 		#region Fields
 		private bool startBtnEnabled;
 		private bool stopBtnEnabled;
-		//private TreeViewItems crawlerOutput;
+		private int crawlingDepth;
+		private TreeViewItems crawlerOutput;
+		private CrawlerTreeViewItem selectedItem;
 		#endregion
 
 		#region Properties
@@ -42,132 +48,90 @@ namespace WpfClient.ViewModel
 			}
 		}
 
-		/*public TreeViewItems CrawlerOutput
+		public TreeViewItems CrawlerOutput
 		{
 			get
 			{
 				return crawlerOutput;
 			}
-		}*/
+		}
+
+		public string CrawlingDepth
+		{
+			get
+			{
+				return crawlingDepth.ToString();
+			}
+			set
+			{
+				int valueOld = crawlingDepth;
+				if (!int.TryParse(value, out crawlingDepth))
+				{
+					crawlingDepth = valueOld;
+				}
+
+				RaisePropertyChanged("CrawlingDepth");
+			}
+		}
+
+		public ButtonCommandAsync StartBtnClick
+		{
+			get; private set;
+		}
+
+		public ButtonCommand StopBtnClick
+		{
+			get; private set;
+		}
 		#endregion
 
 		public CrawlerTreeViewModel()
+			: base(ViewModelId.CrawlerTree)
 		{
+			crawlingDepth = 2;
+			crawlerOutput = new TreeViewItems();
+
 			StartBtnEnabled = false;
 			StopBtnEnabled = false;
+
+			StartBtnClick = new ButtonCommandAsync(OnStartCrawling);
+			StopBtnClick = new ButtonCommand(OnStopCrawling);
 		}
 
 		public void ValidateSourcePath(string path)
 		{
 			StartBtnEnabled = File.Exists(path);
-		}
+		}	
 
-		private XmlElement ParseXmlSource(out int depth)
+		public async Task OnStartCrawling(object param)
 		{
-			//var logger = ApplicationContext.Instance.LoggerVM;
-			XmlDocument document = new XmlDocument();
-
-			depth = 0;
-			try
-			{
-				//document.Load(ApplicationContext.Instance.SourceFileVM.SourceFilePath);
-			}
-			catch (Exception)
-			{
-				//logger.AddLogLine("Failed to parse source file!");
-				return null;
-			}
-
-			//logger.AddLogLine("Source file parsed.");
-
-			var rootElement = document.FirstChild;
-
-			XmlElement resourcesNode = null;
-			if (rootElement != null)
-			{
-				foreach (var child in rootElement)
-				{
-					var element = child as XmlElement;
-					const string DepthNode = "depth";
-					const string RootResourcesNode = "rootResources";
-
-					if (element.Name.Equals(DepthNode))
-					{
-						if (!int.TryParse(element.InnerText, out depth))
-						{
-							//logger.AddLogLine("Can't parse crawling depth! Setting default value of 2.");
-							depth = 2;
-						}
-					}
-					else if (element.Name.Equals(RootResourcesNode))
-					{
-						resourcesNode = element;
-					}
-				}
-			}
-
-			return resourcesNode;
-		}
-
-		private List<Uri> ParseCrawlerInput(out int depth)
-		{
-			XmlElement resourcesContainerNode = ParseXmlSource(out depth);
-
-			if (resourcesContainerNode != null)
-			{
-				List<Uri> rootResourcesList = new List<Uri>();
-				//var logger = ApplicationContext.Instance.LoggerVM;
-
-				foreach (var resource in resourcesContainerNode)
-				{
-					var resourceNode = resource as XmlElement;
-
-					try
-					{
-						Uri resourceUri = new Uri(resourceNode.InnerText);
-						rootResourcesList.Add(resourceUri);
-					}
-					catch (UriFormatException)
-					{
-						//logger.AddLogLine(string.Format("Invalid URI: {0}. Skipped.", resourceNode.InnerText));
-					}
-					catch (ArgumentNullException)
-					{
-						//logger.AddLogLine("Empty resource. Skipped.");
-					}
-				}
-
-				return rootResourcesList;
-			}
-
-			return null;
-		}
-
-		public void OnStartCrawling()
-		{
-			int crawlingDepth;
-			List<Uri> rootResources = ParseCrawlerInput(out crawlingDepth);
+			CrawlerInputParser inputParser = new CrawlerInputParser();
+			List<Uri> rootResources = inputParser.Parse(ViewModelsMediator.Instance.SourceFilePath);
 
 			if (rootResources != null)
 			{
-				//ApplicationContext.Instance.LoggerVM.AddLogLine("Attaching webcrawler lib.");
-
-				StartBtnEnabled = false;
-				StopBtnEnabled = true;
+				//StartBtnEnabled = false;
+				//StopBtnEnabled = true;
 
 				// Pass control to webcrawler lib
 				WebCrawler.WebCrawler crawler = new WebCrawler.WebCrawler();
-				//crawler.CrawlingFinished += OnCrawlingFinished;
 				crawler.MaxDepth = crawlingDepth;
+				crawler.Logger = LoggerViewModel.Instance;
 
 				foreach (var rootUri in rootResources)
 				{
-					Task<WebCrawlerOutput> crawlerOutput = crawler.PerformCrawlingAsync(rootUri, 0, -1);
-					AppendCrawlerOutput(crawlerOutput.Result, null);
+					WebCrawlerOutput crawlerOutput = await crawler.PerformCrawlingAsync(rootUri, 0, -1);
+
+					AppendCrawlerOutput(crawlerOutput, null);
 				}
 
 				//ApplicationContext.Instance.LoggerVM.AddLogLine("Crawling finished.");
 			}
+		}
+
+		public void OnStopCrawling(object param)
+		{
+			
 		}
 
 		public CrawlerTreeViewItem AddCrawlerOutputTreeNode(CrawlerTreeViewItem parent, string item, WebCrawlerOutput attachment)
@@ -182,10 +146,10 @@ namespace WpfClient.ViewModel
 			}
 			else
 			{
-				//CrawlerOutput.Add(element);
+				CrawlerOutput.Add(element);
 			}
 
-			//OnCrawlerOutputChanged();
+			RaisePropertyChanged("CrawlerOutput");
 			return element;
 		}
 

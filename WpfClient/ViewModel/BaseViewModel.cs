@@ -2,8 +2,13 @@
 
 namespace WpfClient.ViewModel
 {
-	public class BaseViewModel : INotifyPropertyChanged
+	internal class BaseViewModel : INotifyPropertyChanged
 	{
+		#region Fields
+		protected ViewModelId ViewModelDef { get; }
+		#endregion
+
+		#region INotifyPropertyChanged interface
 		public event PropertyChangedEventHandler PropertyChanged;
 
 		protected void RaisePropertyChanged(string property)
@@ -13,5 +18,14 @@ namespace WpfClient.ViewModel
 				PropertyChanged(this, new PropertyChangedEventArgs(property));
 			}
 		}
+		#endregion
+
+		#region Constructor
+		protected BaseViewModel(ViewModelId id)
+		{
+			ViewModelDef = id;
+			ViewModelsMediator.Instance.RegisterViewModel(ViewModelDef, this);
+		}
+		#endregion
 	}
 }
