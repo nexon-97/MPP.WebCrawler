@@ -173,6 +173,7 @@ namespace WpfClient.ViewModel
 
 		private void OnSaveToFile(object param)
 		{
+			// Generate output file
 			var filename = resourceUri;
 			int paramsBegin = filename.IndexOf("?");
 			if (paramsBegin != -1)

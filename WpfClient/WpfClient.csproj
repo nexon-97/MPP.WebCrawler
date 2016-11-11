@@ -57,7 +57,6 @@
     </ApplicationDefinition>
     <Compile Include="Commands\ButtonCommandAsync.cs" />
     <Compile Include="Commands\IAsyncCommand.cs" />
-    <Compile Include="CrawingTask.cs" />
     <Compile Include="Commands\ButtonCommand.cs" />
     <Compile Include="CrawlerInputParser.cs" />
     <Compile Include="CrawlerTreeViewItem.cs" />

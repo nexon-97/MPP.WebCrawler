@@ -3,12 +3,12 @@ using System.IO;
 using System.Collections.Generic;
 using WebCrawler;
 using WpfClient.Commands;
-using System.Windows.Input;
 using System.Threading.Tasks;
 using System.Collections.ObjectModel;
 
 namespace WpfClient.ViewModel
 {
+	using System.Collections.Concurrent;
 	using TreeViewItems = ObservableCollection<CrawlerTreeViewItem>;
 
 	internal class CrawlerTreeViewModel : BaseViewModel
@@ -18,7 +18,9 @@ namespace WpfClient.ViewModel
 		private bool stopBtnEnabled;
 		private int crawlingDepth;
 		private TreeViewItems crawlerOutput;
-		private CrawlerTreeViewItem selectedItem;
+		private static object treeViewMutex;
+		private Dictionary<int, CrawlerTreeViewItem> treeNodesDict;
+		private ConcurrentBag<Task<WebCrawlerOutput>> tasksQueue;
 		#endregion
 
 		#region Properties
@@ -96,6 +98,9 @@ namespace WpfClient.ViewModel
 
 			StartBtnClick = new ButtonCommandAsync(OnStartCrawling);
 			StopBtnClick = new ButtonCommand(OnStopCrawling);
+
+			treeViewMutex = new object();
+			treeNodesDict = new Dictionary<int, CrawlerTreeViewItem>();
 		}
 
 		public void ValidateSourcePath(string path)
@@ -105,33 +110,48 @@ namespace WpfClient.ViewModel
 
 		public async Task OnStartCrawling(object param)
 		{
+			ClearCrawlerTree();
+
 			CrawlerInputParser inputParser = new CrawlerInputParser();
 			List<Uri> rootResources = inputParser.Parse(ViewModelsMediator.Instance.SourceFilePath);
 
 			if (rootResources != null)
 			{
-				//StartBtnEnabled = false;
-				//StopBtnEnabled = true;
+				StartBtnEnabled = false;
+				StopBtnEnabled = true;
 
-				// Pass control to webcrawler lib
+				// Init crawler
 				WebCrawler.WebCrawler crawler = new WebCrawler.WebCrawler();
 				crawler.MaxDepth = crawlingDepth;
 				crawler.Logger = LoggerViewModel.Instance;
+				crawler.LoadingFinished += AddCrawlerElement;
 
+				tasksQueue = new ConcurrentBag<Task<WebCrawlerOutput>>();
 				foreach (var rootUri in rootResources)
 				{
-					WebCrawlerOutput crawlerOutput = await crawler.PerformCrawlingAsync(rootUri, 0, -1);
-
-					AppendCrawlerOutput(crawlerOutput, null);
+					tasksQueue.Add(crawler.PerformCrawlingAsync(rootUri, 0, -1));
+					LoggerViewModel.Instance.LogMessage("Task added to queue.");
 				}
 
-				//ApplicationContext.Instance.LoggerVM.AddLogLine("Crawling finished.");
+				foreach (var task in tasksQueue)
+				{
+					WebCrawlerOutput crawlerOutput = await task;
+				}
+
+				StartBtnEnabled = true;
+				StopBtnEnabled = false;
 			}
 		}
 
 		public void OnStopCrawling(object param)
 		{
-			
+			if (tasksQueue != null)
+			{
+				foreach (var task in tasksQueue)
+				{
+					
+				}
+			}
 		}
 
 		public CrawlerTreeViewItem AddCrawlerOutputTreeNode(CrawlerTreeViewItem parent, string item, WebCrawlerOutput attachment)
@@ -149,18 +169,35 @@ namespace WpfClient.ViewModel
 				CrawlerOutput.Add(element);
 			}
 
+			treeNodesDict.Add(attachment.SourceId, element);
 			RaisePropertyChanged("CrawlerOutput");
 			return element;
 		}
 
 		public void AppendCrawlerOutput(WebCrawlerOutput output, CrawlerTreeViewItem treeItem)
 		{
-			var element = AddCrawlerOutputTreeNode(treeItem, string.Format("ID {0}", output.SourceId), output);
-
-			foreach (var child in output.Children)
+			CrawlerTreeViewItem element;
+			lock (treeViewMutex)
 			{
-				AppendCrawlerOutput(child, element);
+				element = AddCrawlerOutputTreeNode(treeItem, string.Format("ID {0}", output.SourceId), output);
 			}
+		}
+
+		private void AddCrawlerElement(int parentId, WebCrawlerOutput output)
+		{	
+			var parentItem = FindTreeItemById(parentId);
+		
+			AppendCrawlerOutput(output, parentItem);
+		}
+
+		private CrawlerTreeViewItem FindTreeItemById(int id)
+		{
+			return treeNodesDict.ContainsKey(id) ? treeNodesDict[id] : null;
+		}
+
+		private void ClearCrawlerTree()
+		{
+			CrawlerOutput.Clear();
 		}
 	}
 }
