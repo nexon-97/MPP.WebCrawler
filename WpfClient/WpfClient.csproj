@@ -58,9 +58,9 @@
     <Compile Include="Commands\ButtonCommandAsync.cs" />
     <Compile Include="Commands\IAsyncCommand.cs" />
     <Compile Include="Commands\ButtonCommand.cs" />
-    <Compile Include="CrawlerInputParser.cs" />
-    <Compile Include="CrawlerTreeViewItem.cs" />
-    <Compile Include="Utils.cs" />
+    <Compile Include="Logic\CrawlerInputParser.cs" />
+    <Compile Include="Extensions\CrawlerTreeViewItem.cs" />
+    <Compile Include="Extensions\Utils.cs" />
     <Compile Include="ViewModel\ViewModelId.cs" />
     <Compile Include="ViewModel\BaseViewModel.cs" />
     <Compile Include="ViewModel\CrawlerTreeViewModel.cs" />
