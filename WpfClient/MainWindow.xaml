@@ -48,7 +48,7 @@
             <Button x:Name="StopBtn" Grid.Row="0" Grid.Column="1" Margin="5,0,0,0" Padding="5" 
                     DataContext="{StaticResource crawlerTreeViewModel}"
                     IsEnabled="{Binding Path=StopBtnEnabled}"
-                    Command="{Binding Path=StopBtnClick, Mode=OneWay}">Stop</Button>
+                    Command="{Binding Path=StopBtnClick, Mode=OneWay}">Cancel</Button>
             <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,5,5,0" Padding="5">Crawling depth</TextBlock>
             <TextBox x:Name="DepthInput" Grid.Row="1" Grid.Column="1" Margin="5,5,0,0" Padding="5" Width="30"
                      DataContext="{StaticResource crawlerTreeViewModel}"
@@ -111,7 +111,7 @@
                            Background="Tan" Foreground="White" FontSize="16" FontWeight="Bold"/>
                 <TextBox Grid.Row="3" Grid.Column="0" DataContext="{StaticResource loggerViewModel}" 
                          Text="{Binding Path=LogText, Mode=OneWay}" IsReadOnly="True" VerticalContentAlignment="Top"
-                         Padding="5"/>
+                         Padding="5" HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Visible"/>
             </Grid>
         </Grid>
     </Grid>

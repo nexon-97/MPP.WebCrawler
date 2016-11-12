@@ -11,8 +11,10 @@ namespace WebCrawler
 
 	public class WebCrawler
 	{
+		#region Constants
 		private const int NotFoundIndex = -1;
 		private const int DefaultDepth = 3;
+		#endregion
 
 		#region Fields
 		private List<Uri> uniqueUriList;
@@ -31,20 +33,19 @@ namespace WebCrawler
 			uniqueUriList = new List<Uri>();
 		}
 
-		public async Task<CrawlerResponse> LoadHtmlPage(Uri uri)
+		internal async Task<CrawlerResponse> LoadHtmlPage(Uri uri)
 		{
 			CrawlerResponse output = new CrawlerResponse();
 			WebRequest request = WebRequest.Create(uri);
-			output.response = null;
 
 			try
 			{
-				output.response = await request.GetResponseAsync();
+				output.Response = await request.GetResponseAsync();
 
-				var stream = output.response.GetResponseStream();
+				var stream = output.Response.GetResponseStream();
 				using (var reader = new StreamReader(stream))
 				{
-					output.content = Encoding.ASCII.GetBytes(reader.ReadToEnd());
+					output.Content = Encoding.ASCII.GetBytes(reader.ReadToEnd());
 					return output;
 				}
 			}
@@ -83,7 +84,7 @@ namespace WebCrawler
 				var loadingResult = await LoadHtmlPage(uri);
 				
 				WebCrawlerOutput output = new WebCrawlerOutput(
-					AddUri(uri), uri, loadingResult.response, loadingResult.content);
+					AddUri(uri), uri, loadingResult.Response, loadingResult.Content);
 				uriId = GetUriId(uri); // Update uri unique id
 
 				if (LoadingFinished != null)
@@ -91,10 +92,10 @@ namespace WebCrawler
 					LoadingFinished(parentId, output);
 				}
 
-				if (loadingResult.content != null)
+				if (loadingResult.Content != null)
 				{
 					LinkExtractor extractor = new LinkExtractor();
-					List<Uri> childUris = extractor.ExtractLinksFromPage(uri, loadingResult.content);
+					List<Uri> childUris = extractor.ExtractLinksFromPage(uri, loadingResult.Content);
 
 					currentDepth++;
 					if (currentDepth < MaxDepth)

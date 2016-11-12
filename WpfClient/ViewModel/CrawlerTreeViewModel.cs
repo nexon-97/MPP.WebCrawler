@@ -13,6 +13,8 @@ namespace WpfClient.ViewModel
 
 	internal class CrawlerTreeViewModel : BaseViewModel
 	{
+		private const int MaxCrawlingDepth = 6;
+
 		#region Fields
 		private bool startBtnEnabled;
 		private bool stopBtnEnabled;
@@ -20,7 +22,6 @@ namespace WpfClient.ViewModel
 		private TreeViewItems crawlerOutput;
 		private static object treeViewMutex;
 		private Dictionary<int, CrawlerTreeViewItem> treeNodesDict;
-		private ConcurrentBag<Task<WebCrawlerOutput>> tasksQueue;
 		#endregion
 
 		#region Properties
@@ -70,6 +71,10 @@ namespace WpfClient.ViewModel
 				if (!int.TryParse(value, out crawlingDepth))
 				{
 					crawlingDepth = valueOld;
+				}
+				else
+				{
+					crawlingDepth = Utils.Clamp<int>(crawlingDepth, 1, MaxCrawlingDepth);
 				}
 
 				RaisePropertyChanged("CrawlingDepth");
@@ -126,16 +131,9 @@ namespace WpfClient.ViewModel
 				crawler.Logger = LoggerViewModel.Instance;
 				crawler.LoadingFinished += AddCrawlerElement;
 
-				tasksQueue = new ConcurrentBag<Task<WebCrawlerOutput>>();
 				foreach (var rootUri in rootResources)
 				{
-					tasksQueue.Add(crawler.PerformCrawlingAsync(rootUri, 0, -1));
-					LoggerViewModel.Instance.LogMessage("Task added to queue.");
-				}
-
-				foreach (var task in tasksQueue)
-				{
-					WebCrawlerOutput crawlerOutput = await task;
+					WebCrawlerOutput crawlerOutput = await crawler.PerformCrawlingAsync(rootUri, 0, -1);
 				}
 
 				StartBtnEnabled = true;
@@ -145,13 +143,7 @@ namespace WpfClient.ViewModel
 
 		public void OnStopCrawling(object param)
 		{
-			if (tasksQueue != null)
-			{
-				foreach (var task in tasksQueue)
-				{
-					
-				}
-			}
+
 		}
 
 		public CrawlerTreeViewItem AddCrawlerOutputTreeNode(CrawlerTreeViewItem parent, string item, WebCrawlerOutput attachment)
@@ -184,9 +176,10 @@ namespace WpfClient.ViewModel
 		}
 
 		private void AddCrawlerElement(int parentId, WebCrawlerOutput output)
-		{	
+		{
+			LoggerViewModel.Instance.LogMessage(string.Format("Resource loaded: {0}", output.SourceUri));
+
 			var parentItem = FindTreeItemById(parentId);
-		
 			AppendCrawlerOutput(output, parentItem);
 		}
 
@@ -198,6 +191,11 @@ namespace WpfClient.ViewModel
 		private void ClearCrawlerTree()
 		{
 			CrawlerOutput.Clear();
+			treeNodesDict.Clear();
+
+			RaisePropertyChanged("CrawlerOutput");
+
+			LoggerViewModel.Instance.LogMessage("Output cleared.");
 		}
 	}
 }

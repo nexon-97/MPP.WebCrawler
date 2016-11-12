@@ -4,7 +4,7 @@ using System.Net;
 
 namespace WebCrawler
 {
-	public class WebCrawlerOutput
+	public class WebCrawlerOutput : IDisposable
 	{
 		public int SourceId { get; private set; }
 		public Uri SourceUri { get; private set; }
@@ -25,6 +25,14 @@ namespace WebCrawler
 		public void AddChild(WebCrawlerOutput child)
 		{
 			Children.Add(child);
+		}
+
+		public void Dispose()
+		{
+			if (Response != null)
+			{
+				Response.Dispose();
+			}	
 		}
 	}
 }

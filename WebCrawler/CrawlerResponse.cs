@@ -1,12 +1,10 @@
 ﻿using System.Net;
-using System.Text;
 
 namespace WebCrawler
 {
-	public struct CrawlerResponse
+	internal struct CrawlerResponse
 	{
-		public byte[] content;
-		public Encoding contentEncoding;
-		public WebResponse response;
+		public byte[] Content { get; set; }
+		public WebResponse Response { get; set; }
 	}
 }
