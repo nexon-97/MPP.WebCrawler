@@ -31,7 +31,7 @@ namespace WpfClient.ViewModel
 			{
 				resourceId = value;
 
-				RaisePropertyChanged("ResourceId");
+				RaisePropertyChanged(nameof(ResourceId));
 			}
 		}
 
@@ -45,7 +45,7 @@ namespace WpfClient.ViewModel
 			{
 				resourceUri = value;
 
-				RaisePropertyChanged("ResourceUri");
+				RaisePropertyChanged(nameof(ResourceUri));
 			}
 		}
 
@@ -59,7 +59,7 @@ namespace WpfClient.ViewModel
 			{
 				responseText = value;
 
-				RaisePropertyChanged("ResponseText");
+				RaisePropertyChanged(nameof(ResponseText));
 			}
 		}
 
@@ -73,7 +73,7 @@ namespace WpfClient.ViewModel
 			{
 				contentDesc = value;
 
-				RaisePropertyChanged("ContentDesc");
+				RaisePropertyChanged(nameof(ContentDesc));
 			}
 		}
 
@@ -87,7 +87,7 @@ namespace WpfClient.ViewModel
 			{
 				linkDescVisible = value;
 
-				RaisePropertyChanged("LinkDescVisible");
+				RaisePropertyChanged(nameof(LinkDescVisible));
 			}
 		}
 
@@ -101,7 +101,7 @@ namespace WpfClient.ViewModel
 			{
 				saveContentBtnEnabled = value;
 
-				RaisePropertyChanged("SaveContentBtnEnabled");
+				RaisePropertyChanged(nameof(SaveContentBtnEnabled));
 			}
 		}
 

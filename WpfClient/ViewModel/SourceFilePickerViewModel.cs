@@ -25,9 +25,7 @@ namespace WpfClient.ViewModel
 				{
 					sourceFilePath = value;
 
-					RaisePropertyChanged("SourceFilePath");
-
-					//ApplicationContext.Instance.CrawlerTreeVM.ValidateSourcePath(sourceFilePath);
+					RaisePropertyChanged(nameof(SourceFilePath));
 				}
 			}
 		}

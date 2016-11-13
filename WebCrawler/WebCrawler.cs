@@ -36,16 +36,16 @@ namespace WebCrawler
 		internal async Task<CrawlerResponse> LoadHtmlPage(Uri uri)
 		{
 			CrawlerResponse output = new CrawlerResponse();
-			WebRequest request = WebRequest.Create(uri);
+			var request = WebRequest.Create(uri);
 
 			try
 			{
 				output.Response = await request.GetResponseAsync();
 
 				var stream = output.Response.GetResponseStream();
-				using (var reader = new StreamReader(stream))
+				using (var reader = new BinaryReader(stream))
 				{
-					output.Content = Encoding.ASCII.GetBytes(reader.ReadToEnd());
+					output.Content = reader.ReadBytes((int)output.Response.ContentLength);
 					return output;
 				}
 			}

@@ -47,7 +47,7 @@ namespace WpfClient.ViewModel
 		{
 			logLines.Add(message);
 
-			RaisePropertyChanged("LogText");
+			RaisePropertyChanged(nameof(LogText));
 		}
 	}
 }

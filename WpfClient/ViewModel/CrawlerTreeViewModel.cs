@@ -8,7 +8,6 @@ using System.Collections.ObjectModel;
 
 namespace WpfClient.ViewModel
 {
-	using System.Collections.Concurrent;
 	using TreeViewItems = ObservableCollection<CrawlerTreeViewItem>;
 
 	internal class CrawlerTreeViewModel : BaseViewModel
@@ -20,7 +19,6 @@ namespace WpfClient.ViewModel
 		private bool stopBtnEnabled;
 		private int crawlingDepth;
 		private TreeViewItems crawlerOutput;
-		private static object treeViewMutex;
 		private Dictionary<int, CrawlerTreeViewItem> treeNodesDict;
 		#endregion
 
@@ -34,7 +32,7 @@ namespace WpfClient.ViewModel
 			set
 			{
 				startBtnEnabled = value;
-				RaisePropertyChanged("StartBtnEnabled");
+				RaisePropertyChanged(nameof(StartBtnEnabled));
 			}
 		}
 
@@ -47,7 +45,7 @@ namespace WpfClient.ViewModel
 			set
 			{
 				stopBtnEnabled = value;
-				RaisePropertyChanged("StopBtnEnabled");
+				RaisePropertyChanged(nameof(StopBtnEnabled));
 			}
 		}
 
@@ -77,7 +75,7 @@ namespace WpfClient.ViewModel
 					crawlingDepth = Utils.Clamp<int>(crawlingDepth, 1, MaxCrawlingDepth);
 				}
 
-				RaisePropertyChanged("CrawlingDepth");
+				RaisePropertyChanged(nameof(CrawlingDepth));
 			}
 		}
 
@@ -98,14 +96,17 @@ namespace WpfClient.ViewModel
 			crawlingDepth = 2;
 			crawlerOutput = new TreeViewItems();
 
+			// Configure buttons state
 			StartBtnEnabled = false;
 			StopBtnEnabled = false;
 
+			// Register commands
 			StartBtnClick = new ButtonCommandAsync(OnStartCrawling);
 			StopBtnClick = new ButtonCommand(OnStopCrawling);
 
-			treeViewMutex = new object();
+			// Init internal tree view items quick access storage
 			treeNodesDict = new Dictionary<int, CrawlerTreeViewItem>();
+			//treeViewMutex = new Mutex();
 		}
 
 		public void ValidateSourcePath(string path)
@@ -148,10 +149,12 @@ namespace WpfClient.ViewModel
 
 		public CrawlerTreeViewItem AddCrawlerOutputTreeNode(CrawlerTreeViewItem parent, string item, WebCrawlerOutput attachment)
 		{
+			// Construct element
 			CrawlerTreeViewItem element = new CrawlerTreeViewItem();
 			element.Header = item;
 			element.AttachedData = attachment;
 
+			// Attach to the parent
 			if (parent != null)
 			{
 				parent.Items.Add(element);
@@ -161,18 +164,16 @@ namespace WpfClient.ViewModel
 				CrawlerOutput.Add(element);
 			}
 
-			treeNodesDict.Add(attachment.SourceId, element);
-			RaisePropertyChanged("CrawlerOutput");
+			treeNodesDict.Add(attachment.SourceId, element); // Register for quick access
+			RaisePropertyChanged(nameof(CrawlerOutput));
+
 			return element;
 		}
 
 		public void AppendCrawlerOutput(WebCrawlerOutput output, CrawlerTreeViewItem treeItem)
 		{
-			CrawlerTreeViewItem element;
-			lock (treeViewMutex)
-			{
-				element = AddCrawlerOutputTreeNode(treeItem, string.Format("ID {0}", output.SourceId), output);
-			}
+			string elementName = string.Format("ID {0}", output.SourceId);
+			AddCrawlerOutputTreeNode(treeItem, elementName, output);
 		}
 
 		private void AddCrawlerElement(int parentId, WebCrawlerOutput output)
@@ -193,7 +194,7 @@ namespace WpfClient.ViewModel
 			CrawlerOutput.Clear();
 			treeNodesDict.Clear();
 
-			RaisePropertyChanged("CrawlerOutput");
+			RaisePropertyChanged(nameof(CrawlerOutput));
 
 			LoggerViewModel.Instance.LogMessage("Output cleared.");
 		}
