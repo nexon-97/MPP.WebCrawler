@@ -12,9 +12,15 @@ namespace WebCrawler
 		private const string TagEndingPattern = ">";
 		private const string AbsolutePathFeature = "://";
 
-		public List<Uri> ExtractLinksFromPage(Uri uri, byte[] content)
+		public List<Uri> ExtractLinksFromPage(Uri uri, byte[] content, Encoding encoding)
 		{
-			string downloadedPage = Encoding.ASCII.GetString(content);
+			// Apply default encoding if no specified
+			if (encoding == null)
+			{
+				encoding = Encoding.ASCII;
+			}
+
+			string downloadedPage = encoding.GetString(content);
 
 			List<Uri> links = new List<Uri>();
 			int searchFromIndex = 0;
@@ -53,7 +59,7 @@ namespace WebCrawler
 			return links;
 		}
 
-		public Uri ConstructUri(Uri source, string href)
+		private Uri ConstructUri(Uri source, string href)
 		{
 			bool isAbsolute = href.Contains(AbsolutePathFeature);
 			if (isAbsolute)

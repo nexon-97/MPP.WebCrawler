@@ -90,6 +90,7 @@ namespace WpfClient.ViewModel
 		}
 		#endregion
 
+		#region Constructor
 		public CrawlerTreeViewModel()
 			: base(ViewModelId.CrawlerTree)
 		{
@@ -106,8 +107,8 @@ namespace WpfClient.ViewModel
 
 			// Init internal tree view items quick access storage
 			treeNodesDict = new Dictionary<int, CrawlerTreeViewItem>();
-			//treeViewMutex = new Mutex();
 		}
+#endregion
 
 		public void ValidateSourcePath(string path)
 		{
@@ -130,7 +131,7 @@ namespace WpfClient.ViewModel
 				WebCrawler.WebCrawler crawler = new WebCrawler.WebCrawler();
 				crawler.MaxDepth = crawlingDepth;
 				crawler.Logger = LoggerViewModel.Instance;
-				crawler.LoadingFinished += AddCrawlerElement;
+				crawler.LoadingFinished += OnPageLoadingFinished;
 
 				foreach (var rootUri in rootResources)
 				{
@@ -170,18 +171,13 @@ namespace WpfClient.ViewModel
 			return element;
 		}
 
-		public void AppendCrawlerOutput(WebCrawlerOutput output, CrawlerTreeViewItem treeItem)
-		{
-			string elementName = string.Format("ID {0}", output.SourceId);
-			AddCrawlerOutputTreeNode(treeItem, elementName, output);
-		}
-
-		private void AddCrawlerElement(int parentId, WebCrawlerOutput output)
+		private void OnPageLoadingFinished(int parentId, WebCrawlerOutput output)
 		{
 			LoggerViewModel.Instance.LogMessage(string.Format("Resource loaded: {0}", output.SourceUri));
 
 			var parentItem = FindTreeItemById(parentId);
-			AppendCrawlerOutput(output, parentItem);
+			string elementName = string.Format("ID {0}", output.SourceId);
+			AddCrawlerOutputTreeNode(parentItem, elementName, output);
 		}
 
 		private CrawlerTreeViewItem FindTreeItemById(int id)

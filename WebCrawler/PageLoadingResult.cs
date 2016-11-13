@@ -2,7 +2,7 @@
 
 namespace WebCrawler
 {
-	internal struct CrawlerResponse
+	internal struct PageLoadingResult
 	{
 		public byte[] Content { get; set; }
 		public WebResponse Response { get; set; }

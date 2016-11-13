@@ -25,44 +25,24 @@ namespace WebCrawler
 		public ILogger Logger { get; set; }
 		#endregion
 
+		#region Events
 		public event PageLoadingFinished LoadingFinished;
+		#endregion
 
+		#region Constructor
 		public WebCrawler()
 		{
 			MaxDepth = DefaultDepth;
 			uniqueUriList = new List<Uri>();
 		}
+		#endregion
 
-		internal async Task<CrawlerResponse> LoadHtmlPage(Uri uri)
-		{
-			CrawlerResponse output = new CrawlerResponse();
-			var request = WebRequest.Create(uri);
-
-			try
-			{
-				output.Response = await request.GetResponseAsync();
-
-				var stream = output.Response.GetResponseStream();
-				using (var reader = new BinaryReader(stream))
-				{
-					output.Content = reader.ReadBytes((int)output.Response.ContentLength);
-					return output;
-				}
-			}
-			catch (WebException e)
-			{
-				LogMessage(string.Format("{0}: {1}", uri, e.Message));
-			}
-
-			return new CrawlerResponse();
-		}
-
-		public int GetUriId(Uri uri)
+		private int GetUriId(Uri uri)
 		{
 			return uniqueUriList.FindIndex(x => uri.AbsoluteUri.Equals(x.AbsoluteUri));
 		}
 
-		public int AddUri(Uri uri)
+		private int AddUri(Uri uri)
 		{
 			int uriId = GetUriId(uri);
 			if (uriId == NotFoundIndex)
@@ -76,39 +56,31 @@ namespace WebCrawler
 			}
 		}
 
+		private bool IsUriUnique(Uri uri)
+		{
+			return GetUriId(uri) == NotFoundIndex;
+		}
+
 		public async Task<WebCrawlerOutput> PerformCrawlingAsync(Uri uri, int currentDepth, int parentId)
 		{
-			int uriId = GetUriId(uri);
-			if (uriId == NotFoundIndex)
+			if (IsUriUnique(uri))
 			{
-				var loadingResult = await LoadHtmlPage(uri);
-				
+				// Load web resource
+				var pageLoader = new WebPageLoader();
+				var loadResult = await pageLoader.LoadAsync(uri);
+
+				// Register resource
+				int uriId = AddUri(uri);
+				// Generate crawler output
 				WebCrawlerOutput output = new WebCrawlerOutput(
-					AddUri(uri), uri, loadingResult.Response, loadingResult.Content);
-				uriId = GetUriId(uri); // Update uri unique id
+					uriId, uri, loadResult.Response, loadResult.Content);
 
-				if (LoadingFinished != null)
+				NotifyResourceLoadingFinished(parentId, output);
+
+				currentDepth++;
+				if (loadResult.Content != null && currentDepth < MaxDepth)
 				{
-					LoadingFinished(parentId, output);
-				}
-
-				if (loadingResult.Content != null)
-				{
-					LinkExtractor extractor = new LinkExtractor();
-					List<Uri> childUris = extractor.ExtractLinksFromPage(uri, loadingResult.Content);
-
-					currentDepth++;
-					if (currentDepth < MaxDepth)
-					{
-						foreach (var item in childUris)
-						{
-							var childOutput = await PerformCrawlingAsync(item, currentDepth, uriId);
-							if (childOutput != null)
-							{
-								output.AddChild(childOutput);
-							}
-						}
-					}
+					ExtractPageLinks(loadResult.Content, uri, output, currentDepth);
 				}
 
 				return output;
@@ -117,11 +89,29 @@ namespace WebCrawler
 			return null;
 		}
 
-		public Uri GetUriById(int id)
+		private async void ExtractPageLinks(byte[] content, Uri parentUri, WebCrawlerOutput output, int depth)
 		{
-			if (id >= 0 && uniqueUriList.Count > id)
+			LinkExtractor extractor = new LinkExtractor();
+			Encoding responseEncoding = GetEncodingFromResponse(output.Response);
+			List<Uri> childUris = extractor.ExtractLinksFromPage(parentUri, content, responseEncoding);
+
+			foreach (var link in childUris)
 			{
-				return uniqueUriList[id];
+				var childOutput = await PerformCrawlingAsync(link, depth, GetUriId(parentUri));
+				if (childOutput != null)
+				{
+					output.AddChild(childOutput);
+				}
+			}
+		}
+
+		private Encoding GetEncodingFromResponse(WebResponse response)
+		{
+			// Check for http response
+			var httpResponse = response as HttpWebResponse;
+			if (httpResponse != null)
+			{
+				return Encoding.GetEncoding(httpResponse.CharacterSet);	
 			}
 
 			return null;
@@ -132,6 +122,14 @@ namespace WebCrawler
 			if (Logger != null)
 			{
 				Logger.LogMessage(message);
+			}
+		}
+
+		private void NotifyResourceLoadingFinished(int parentId, WebCrawlerOutput output)
+		{
+			if (LoadingFinished != null)
+			{
+				LoadingFinished(parentId, output);
 			}
 		}
 	}
